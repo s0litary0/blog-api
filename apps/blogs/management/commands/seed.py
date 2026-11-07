@@ -173,6 +173,9 @@ class Command(BaseCommand):
         available_tags: list[Tag] = list(Tag.objects.all())
         available_categories: list[Category] = list(Category.objects.all())
 
+        if len(available_authors) <= 0: 
+            raise CommandError("No authors exists to create post")
+
         for _ in range(posts_count):
             author: User = choice(available_authors)
             title: str = faker.sentence()
@@ -225,6 +228,11 @@ class Command(BaseCommand):
         # used_comments: set[tuple[int, int]] = set(Comment.objects.values_list("post", "author"))
         available_authors: list[User] = list(User.objects.all())
         available_posts: list[Post] = list(Post.objects.filter(status=Statuses.PUBLISHED))
+
+        if len(available_authors) <= 0:
+            raise CommandError("No authors exists to leave comment")
+        if len(available_posts) <= 0:
+            raise CommandError("No posts exists to leave comment")
 
         for _ in range(comments_count):
             post: Post = choice(available_posts)
