@@ -1,0 +1,53 @@
+{% extends 'admin/base.html' %}
+
+{% load i18n %}
+{% load unfold %}
+
+{% block title %}
+    {% if subtitle %}
+        {{ subtitle }} |
+    {% endif %}
+
+    {{ title }} | {{ site_title|default:_('Django site admin') }}
+{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+{% component "unfold/components/container.html" %}
+<div class="flex flex-col gap-6">
+    <div class="flex flex-row gap-4">
+        {% component "unfold/components/card.html" with title="Total users" disable_border=True%}
+        {{ total_users }}
+        {% endcomponent %}
+
+        {% component "unfold/components/card.html" with title="Total published posts" disable_border=True%}
+        {{ total_published_posts }}
+        {% endcomponent %}
+
+        {% component "unfold/components/card.html" with title="Total drafted posts" disable_border=True%}
+        {{ total_drafted_posts }}
+        {% endcomponent %}
+
+        {% component "unfold/components/card.html" with title="Total comments" disable_border=True%}
+        {{ total_comments }}
+        {% endcomponent %}
+    </div>
+    <div class="flex">
+        {% component "unfold/components/chart/bar.html" with component_class="BarChartComponent" %}
+        {% endcomponent %}
+    </div>
+    <div class="w-full">
+        {% component "unfold/components/table.html" with component_class="TableComponent" title="Top 5 users by post count" striped=1%}
+        {% endcomponent %}
+    </div>
+    <div class="w-full">
+        {% component "unfold/components/progress.html" with component_class="ProgressBarComponent" %}
+        {% endcomponent %}
+    </div>
+    
+</div>
+{% endcomponent %}
+{% endblock %}

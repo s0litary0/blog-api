@@ -67,11 +67,11 @@ class Command(BaseCommand):
     def __delete_existing_data(self) -> None:
         """Delete existing data from all tables except superusers"""
 
-        User.objects.filter(is_superuser=False).delete()
-        Category.objects.all().delete()
-        Tag.objects.all().delete()
         Comment.objects.all().delete()
         Post.objects.all().delete()
+        Tag.objects.all().delete()
+        Category.objects.all().delete()
+        User.objects.filter(is_superuser=False).delete()
 
 
     def __create_users(self, users_count: int, faker: Faker) -> int:
@@ -86,7 +86,7 @@ class Command(BaseCommand):
         used_emails: set[str] = set(User.objects.values_list("email", flat=True))
 
         for _ in range(users_count):
-            first_name, last_name = faker.name().split()[:2]
+            first_name, last_name = faker.first_name(), faker.last_name()
             email: str = ".".join([first_name, last_name]).lower() + "@" + choice(self.EMAIL_DOMENS)
 
             if email in used_emails:
@@ -168,7 +168,7 @@ class Command(BaseCommand):
             raise CommandError("Posts count must be >= 0")
 
         posts_to_create: list[Post] = []
-        used_posts: set[str] = set(Post.objects.values_list("slug", flat=True))
+        used_slugs: set[str] = set(Post.objects.values_list("slug", flat=True))
         available_authors: list[User] = list(User.objects.all())
         available_tags: list[Tag] = list(Tag.objects.all())
         available_categories: list[Category] = list(Category.objects.all())
@@ -181,9 +181,11 @@ class Command(BaseCommand):
             title: str = faker.sentence()
             slug: str = slugify(title)
 
-            if slug in used_posts:
-                slug_suffix: str = str(Post.objects.filter(slug=slug).count() + 1)
-                slug = slugify(slug + slug_suffix)
+            if slug in used_slugs:
+                slug_count: int = 1
+                while slug in used_slugs:
+                    slug_count += 1
+                    slug = slugify(f"{slug}-{slug_count}")
 
             body: str = "\n".join(faker.paragraphs(nb=randint(1, MAX_POST_PARAGRPAHS)))
 
@@ -194,6 +196,8 @@ class Command(BaseCommand):
             status: Statuses = Statuses.DRAFT
             if random() < BEING_PUBLISHED_CHANCE:
                 status = Statuses.PUBLISHED   
+
+            used_slugs.add(slug)
 
             posts_to_create.append(
                 Post(
@@ -249,7 +253,6 @@ class Command(BaseCommand):
 
         created_comments_count: int = len(Comment.objects.bulk_create(comments_to_create))
         return created_comments_count
-
 
     def add_arguments(self, parser: CommandParser) -> None:
         """Recieve command arguments"""

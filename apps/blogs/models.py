@@ -49,11 +49,11 @@ class Post(Model):
     TITLE_MAX_LENGTH = 200
     STATUS_MAX_LENGTH = 10
 
-    author = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    author = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name="posts")
     title = CharField(max_length=TITLE_MAX_LENGTH)
     slug = SlugField()
     body = TextField(blank=True, default="")
-    category = ForeignKey(to=Category, on_delete=SET_NULL, null=True)
+    category = ForeignKey(to=Category, on_delete=SET_NULL, null=True, related_name="posts")
     tags = ManyToManyField(to=Tag, blank=True, related_name="posts")
     status = CharField(max_length=STATUS_MAX_LENGTH, choices=Statuses.choices)
     created_at = DateTimeField(auto_now_add=True)
@@ -61,6 +61,9 @@ class Post(Model):
 
     class Meta:
         constraints = [UniqueConstraint(fields=["slug"], name="unique_slug_post")]
+
+    def __str__(self) -> str:
+        return self.title
 
 
 class Comment(Model):
