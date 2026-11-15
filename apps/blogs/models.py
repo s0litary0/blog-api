@@ -38,13 +38,13 @@ class Tag(Model):
         constraints = [UniqueConstraint(fields=["slug"], name="unique_slug_tag")]
 
 
-class Statuses(TextChoices):
-    DRAFT = "draft"
-    PUBLISHED = "published"
-
 
 class Post(Model):
     """Post model."""
+
+    class Statuses(TextChoices):
+        DRAFT = "draft"
+        PUBLISHED = "published"
 
     TITLE_MAX_LENGTH = 200
     STATUS_MAX_LENGTH = 10

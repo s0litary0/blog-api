@@ -25,3 +25,9 @@
 
 ### Users list
 <img src="./docs/screenshots/users_list.png" alt="Admin users preview">
+
+## Queries
+<img src="./docs/screenshots/queries_help.png" alt="Queries command help">
+
+<img src="./docs/screenshots/query_26.png" alt="Query 26">
+<img src="./docs/screenshots/query_41.png" alt="Query 41">

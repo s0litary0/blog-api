@@ -1,9 +1,7 @@
-from typing import Any
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.sections import TableSection
 from unfold.contrib.filters.admin import (
     RangeDateTimeFilter,
-    FieldTextFilter,
     AutocompleteSelectFilter,
     ChoicesDropdownFilter,
     RelatedDropdownFilter,
@@ -26,7 +24,6 @@ from .models import (
     Tag,
     Comment,
     Post,
-    Statuses
 )
 from .components import BaseBarChartComponent, BaseTableComponent, BaseProgressBarComponent
 
@@ -190,8 +187,8 @@ class PostAdmin(ModelAdmin):
     @display(
         description=_("Status"),
         label = {
-            Statuses.DRAFT: "warning",
-            Statuses.PUBLISHED: "success"
+            Post.Statuses.DRAFT: "warning",
+            Post.Statuses.PUBLISHED: "success"
         }
     )
     def post_status(self, obj: Post) -> str:
@@ -224,20 +221,20 @@ class PostAdmin(ModelAdmin):
         description=_("Publish selected")
     )
     def publish_selected(self, request: HttpRequest, queryset: QuerySet):
-        queryset.update(status=Statuses.PUBLISHED)
+        queryset.update(status=Post.Statuses.PUBLISHED)
 
     @action(
         description=_("Move to drafts")
     )
     def move_to_drafts(self, request: HttpRequest, queryset: QuerySet):
-        queryset.update(status=Statuses.DRAFT)
+        queryset.update(status=Post.Statuses.DRAFT)
 
     @action(
         description=_("Publish all drafts"),
         variant=ActionVariant.PRIMARY
     )
     def publish_all_drafts(self, request: HttpRequest):
-        Post.objects.filter(status=Statuses.DRAFT).update(status=Statuses.PUBLISHED)
+        Post.objects.filter(status=Post.Statuses.DRAFT).update(status=Post.Statuses.PUBLISHED)
         return HttpResponseRedirect(reverse_lazy("admin:blogs_post_changelist"))
 
     @action(
@@ -246,10 +243,10 @@ class PostAdmin(ModelAdmin):
     )
     def publish_draft_post(self, request: HttpRequest, object_id: int):
         obj = Post.objects.get(id=object_id)
-        if obj.status == Statuses.DRAFT:
-            obj.status = Statuses.PUBLISHED
+        if obj.status == Post.Statuses.DRAFT:
+            obj.status = Post.Statuses.PUBLISHED
         else:
-            obj.status = Statuses.DRAFT
+            obj.status = Post.Statuses.DRAFT
 
         obj.save()
         return HttpResponseRedirect(reverse_lazy("admin:blogs_post_changelist"))
@@ -264,7 +261,7 @@ class PostAdmin(ModelAdmin):
         description=_("Save and publish")
     )
     def save_and_publish(self, request: HttpRequest, obj: Post):
-        obj.status = Statuses.PUBLISHED
+        obj.status = Post.Statuses.PUBLISHED
         obj.save()
 
 @register(Comment)

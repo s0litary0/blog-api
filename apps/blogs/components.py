@@ -3,7 +3,7 @@ from unfold.components import BaseComponent
 
 from django.db.models import Count
 
-from apps.blogs.models import Category, Post, Statuses
+from apps.blogs.models import Category, Post
 from apps.auths.models import User
 
 
@@ -63,7 +63,7 @@ class BaseProgressBarComponent(BaseComponent):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        published_count: int = Post.objects.filter(status=Statuses.PUBLISHED).count()
+        published_count: int = Post.objects.filter(status=Post.Statuses.PUBLISHED).count()
         total_count: int = Post.objects.count()
 
         context.update(

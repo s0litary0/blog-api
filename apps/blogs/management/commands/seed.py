@@ -1,16 +1,17 @@
 from typing import Any
 from random import choice, sample, randint, random
 from time import perf_counter
+from datetime import datetime
 from faker import Faker
 
 from django.core.management.base import BaseCommand, CommandParser, CommandError
 from django.contrib.auth.hashers import make_password
 from django.utils.text import slugify
+from django.utils import timezone as django_timezone
 
 from apps.auths.models import User
 from apps.blogs.models import (
     Post,
-    Statuses,
     Tag,
     Comment,
     Category,
@@ -163,6 +164,9 @@ class Command(BaseCommand):
         MAX_POST_PARAGRPAHS: int = 5
         BEING_PUBLISHED_CHANCE: float = 0.7
         HAVING_CATEGORY_CHANCE: float = 0.9
+        CREATED_AT_DAYS_SPAN: tuple[int, int] = (0, 365)
+        UPDATED_AT_DAYS_SPAN: tuple[int, int] = (0, 30)
+        BEING_UPDATED_CHANCE: float = 0.3
 
         if posts_count < 0:
             raise CommandError("Posts count must be >= 0")
@@ -193,9 +197,9 @@ class Command(BaseCommand):
             if random() < HAVING_CATEGORY_CHANCE:
                 category = choice(available_categories)
 
-            status: Statuses = Statuses.DRAFT
+            status: Post.Statuses = Post.Statuses.DRAFT
             if random() < BEING_PUBLISHED_CHANCE:
-                status = Statuses.PUBLISHED   
+                status = Post.Statuses.PUBLISHED   
 
             used_slugs.add(slug)
 
@@ -217,6 +221,24 @@ class Command(BaseCommand):
 
             post.tags.set(tags)
 
+        current_date: datetime = django_timezone.now()
+        for post in created_posts:
+            post.created_at = (
+                post.created_at - django_timezone.timedelta(days=randint(*CREATED_AT_DAYS_SPAN))
+            )
+
+            if random() < BEING_UPDATED_CHANCE:
+                min_days, max_days = (
+                    UPDATED_AT_DAYS_SPAN[0], 
+                    min(UPDATED_AT_DAYS_SPAN[1], (current_date - post.created_at).days))
+                post.updated_at = (
+                    post.created_at + django_timezone.timedelta(days=randint(min_days, max_days))
+                )
+            else:
+                post.updated_at = post.created_at
+
+        Post.objects.bulk_update(created_posts, fields=["created_at", "updated_at"])
+
         return len(created_posts)
 
     def __create_comments(self, comments_count: int, faker: Faker) -> int:
@@ -231,7 +253,7 @@ class Command(BaseCommand):
         # duplicated comments are allowed
         # used_comments: set[tuple[int, int]] = set(Comment.objects.values_list("post", "author"))
         available_authors: list[User] = list(User.objects.all())
-        available_posts: list[Post] = list(Post.objects.filter(status=Statuses.PUBLISHED))
+        available_posts: list[Post] = list(Post.objects.filter(status=Post.Statuses.PUBLISHED))
 
         if len(available_authors) <= 0:
             raise CommandError("No authors exists to leave comment")
@@ -250,12 +272,23 @@ class Command(BaseCommand):
                     body=body
                 )
             )
+        created_comments: list[Comment] = Comment.objects.bulk_create(comments_to_create)
 
-        created_comments_count: int = len(Comment.objects.bulk_create(comments_to_create))
+        current_date: datetime = django_timezone.now()
+        for comment in created_comments:
+            min_days, max_days = 0, (current_date - comment.post.created_at).days
+            comment.created_at = (
+                comment.post.created_at + django_timezone.timedelta(days=randint(min_days, max_days))
+            )
+
+        Comment.objects.bulk_update(created_comments, fields=["created_at"])
+
+        created_comments_count: int = len(created_comments)
         return created_comments_count
 
     def add_arguments(self, parser: CommandParser) -> None:
         """Recieve command arguments"""
+        
         parser.add_argument(
             "--users",
             type=int,
