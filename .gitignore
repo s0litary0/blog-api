@@ -29,6 +29,7 @@ logs
 .coverage
 htmlcov/
 .tox/
+.postman/
 
 # IDE / editors
 .vscode/

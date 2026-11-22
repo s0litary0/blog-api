@@ -23,14 +23,15 @@ class CustomUserManager(BaseUserManager):
 
     def create_user(
         self, email: str | None = None, password: str | None = None, **kwargs
-    ) -> ...:
+    ) -> "User":
         kwargs.setdefault("is_staff", False)
         kwargs.setdefault("is_superuser", False)
+        
         return self._create_user(email=email, password=password, **kwargs)
 
     def create_superuser(
         self, email: str | None = None, password: str | None = None, **kwargs
-    ) -> ...:
+    ) -> "User":
         kwargs.setdefault("is_staff", True)
         kwargs.setdefault("is_superuser", True)
         return self._create_user(email=email, password=password, **kwargs)
@@ -39,10 +40,14 @@ class CustomUserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom User model"""
 
+    MAX_EMAIL_LENGTH: int = 256
     MAX_FIRST_NAME_LENGTH: int = 50
     MAX_LAST_NAME_LENGTH: int = 50
 
-    email = EmailField(unique=True)
+    email = EmailField(
+        unique=True,
+        max_length=MAX_EMAIL_LENGTH
+    )
     first_name = CharField(
         max_length=MAX_FIRST_NAME_LENGTH,
     )
@@ -53,7 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = BooleanField(default=False)
     is_staff = BooleanField(default=False)
 
-    objects = CustomUserManager()
+    objects: CustomUserManager = CustomUserManager()
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
@@ -62,9 +67,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
-        # constraints = [
-        #     UniqueConstraint(fields=("email"), name="unique_email"),
-        # ]
 
     def get_full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"

@@ -28,10 +28,12 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
 ]
 PROJECT_APPS = [
+    "apps.abstracts.apps.AbstractsConfig",
     "apps.auths.apps.AuthsConfig",
-    "apps.blogs.apps.BlogsConfig"
+    "apps.blogs.apps.BlogsConfig",
 ]
 INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 

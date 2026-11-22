@@ -6,7 +6,6 @@ from apps.blogs.models import (
     Comment, 
     Post, 
     Tag,
-    Statuses
 )
 
 
@@ -21,8 +20,8 @@ def environment_callback(request):
 def dashboard_callback(request, context):
 
     total_users = len(User.objects.all())
-    total_published_posts = Post.objects.filter(status=Statuses.PUBLISHED).count()
-    total_drafted_posts = Post.objects.filter(status=Statuses.DRAFT).count()
+    total_published_posts = Post.objects.filter(status=Post.Statuses.PUBLISHED).count()
+    total_drafted_posts = Post.objects.filter(status=Post.Statuses.DRAFT).count()
     total_comments = len(Comment.objects.all())
     
     context.update(
